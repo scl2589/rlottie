@@ -18,12 +18,14 @@ public:
         return std::unique_ptr<RlottieWasm>(new RlottieWasm(resource));
     }
     int frames() const { return mFrameCount; }
+    double frameRate() const { return mFrameRate; }
 
     bool load(std::string jsonData)
     {
         mPlayer = rlottie::Animation::loadFromData(std::move(jsonData), "", "",
                                                    false);
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
+        mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
         return mPlayer ? true : false;
     }
 
@@ -58,6 +60,7 @@ private:
     {
         mPlayer = rlottie::Animation::loadFromData(data, "", "", false);
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
+        mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
     }
 
     void convertToCanvasFormat()
@@ -94,6 +97,7 @@ private:
     int                                 mWidth{0};
     int                                 mHeight{0};
     int                                 mFrameCount{0};
+    double                              mFrameRate{0.0};
     std::unique_ptr<uint8_t[]>          mBuffer;
     std::unique_ptr<rlottie::Animation> mPlayer;
 };
@@ -105,5 +109,6 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .constructor(&RlottieWasm::create)
         .function("load", &RlottieWasm::load, allow_raw_pointers())
         .function("frames", &RlottieWasm::frames)
+        .function("frameRate", &RlottieWasm::frameRate)
         .function("render", &RlottieWasm::render);
 }
