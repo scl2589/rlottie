@@ -28,7 +28,18 @@ public:
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
         mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
         mDuration = mPlayer ? mPlayer->duration() : 0.0;
+        mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
         return mPlayer ? true : false;
+    }
+
+    // @TODO: Fix it to return vector<tuple<...>>
+    val layers() const
+    {
+        std::vector<std::string> vec;
+
+        for (const auto& l : mLayers)
+            vec.push_back(std::get<0>(l)+"/"+std::to_string(std::get<1>(l))+"/"+ std::to_string(std::get<2>(l)));
+        return val(vec);
     }
 
     void setFillColor(std::string keypath, float r, float g, float b)
@@ -78,6 +89,7 @@ private:
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
         mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
         mDuration = mPlayer ? mPlayer->duration() : 0.0;
+        mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
     }
 
     void convertToCanvasFormat()
@@ -116,6 +128,7 @@ private:
     int                                 mFrameCount{0};
     double                              mFrameRate{0.0};
     double                              mDuration{0.0};
+    rlottie::LayerInfoList              mLayers{};
     std::unique_ptr<uint8_t[]>          mBuffer;
     std::unique_ptr<rlottie::Animation> mPlayer;
 };
@@ -126,10 +139,13 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
     class_<RlottieWasm>("RlottieWasm")
         .constructor(&RlottieWasm::create)
         .function("load", &RlottieWasm::load, allow_raw_pointers())
+        .function("layers", &RlottieWasm::layers)
         .function("frames", &RlottieWasm::frames)
         .function("frameRate", &RlottieWasm::frameRate)
         .function("duration", &RlottieWasm::duration)
         .function("setFillColor", &RlottieWasm::setFillColor)
         .function("setStrokeColor", &RlottieWasm::setStrokeColor)
         .function("render", &RlottieWasm::render);
+
+    register_vector<std::string>("vector<std::tstring>");
 }
