@@ -38,6 +38,13 @@ public:
         mPlayer->setValue<rlottie::Property::FillColor>(keypath, rlottie::Color(r, g, b));
     }
 
+    void setStrokeColor(std::string keypath, float r, float g, float b)
+    {
+        if (!mPlayer) return;
+
+        mPlayer->setValue<rlottie::Property::StrokeColor>(keypath, rlottie::Color(r, g, b));
+    }
+
     // canvas pixel pix[0] pix[1] pix[2] pix[3] {B G R A}
     // lottie pixel pix[0] pix[1] pix[2] pix[3] {R G B A}
     val render(int frame, int width, int height)
@@ -123,5 +130,6 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .function("frameRate", &RlottieWasm::frameRate)
         .function("duration", &RlottieWasm::duration)
         .function("setFillColor", &RlottieWasm::setFillColor)
+        .function("setStrokeColor", &RlottieWasm::setStrokeColor)
         .function("render", &RlottieWasm::render);
 }
