@@ -75,6 +75,13 @@ public:
         mPlayer->setValue<rlottie::Property::StrokeWidth>(keypath, width);
     }
 
+    void setAnchor(std::string keypath, float x, float y)
+    {
+        if (!mPlayer) return;
+
+        mPlayer->setValue<rlottie::Property::TrAnchor>(keypath, rlottie::Point(x, y));
+    }
+
     void setPosition(std::string keypath, float x, float y)
     {
         if (!mPlayer) return;
@@ -195,6 +202,7 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .function("setFillOpacity", &RlottieWasm::setFillOpacity)
         .function("setStrokeOpacity", &RlottieWasm::setStrokeOpacity)
         .function("setStrokeWidth", &RlottieWasm::setStrokeWidth)
+        .function("setAnchor", &RlottieWasm::setAnchor)
         .function("setPosition", &RlottieWasm::setPosition)
         .function("setScale", &RlottieWasm::setScale)
         .function("setRotation", &RlottieWasm::setRotation)
