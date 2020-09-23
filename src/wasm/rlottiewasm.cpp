@@ -82,6 +82,13 @@ public:
         mPlayer->setValue<rlottie::Property::TrPosition>(keypath, rlottie::Point(x, y));
     }
 
+    void setScale(std::string keypath, float width, float height)
+    {
+        if (!mPlayer) return;
+
+        mPlayer->setValue<rlottie::Property::TrScale>(keypath, rlottie::Size(width, height));
+    }
+
     // canvas pixel pix[0] pix[1] pix[2] pix[3] {B G R A}
     // lottie pixel pix[0] pix[1] pix[2] pix[3] {R G B A}
     val render(int frame, int width, int height)
@@ -175,6 +182,7 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .function("setStrokeOpacity", &RlottieWasm::setStrokeOpacity)
         .function("setStrokeWidth", &RlottieWasm::setStrokeWidth)
         .function("setPosition", &RlottieWasm::setPosition)
+        .function("setScale", &RlottieWasm::setScale)
         .function("render", &RlottieWasm::render);
 
     register_vector<std::string>("vector<std::tstring>");
