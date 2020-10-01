@@ -28,8 +28,23 @@ public:
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
         mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
         mDuration = mPlayer ? mPlayer->duration() : 0.0;
+
         mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
+        mSpecificLayers = mPlayer ? mPlayer->allLayersInfoList() :
+                                    rlottie::LayerTypeList();
+
         return mPlayer ? true : false;
+    }
+
+    val allLayerTypeList()
+    {
+        std::vector<std::string> vec;
+
+        for (const auto& l : mSpecificLayers) {
+            vec.push_back(l.first + l.second);
+        }
+
+        return val(vec);
     }
 
     // @TODO: Fix it to return vector<tuple<...>>
@@ -37,8 +52,12 @@ public:
     {
         std::vector<std::string> vec;
 
-        for (const auto& l : mLayers)
-            vec.push_back(std::get<0>(l)+"/"+std::to_string(std::get<1>(l))+"/"+ std::to_string(std::get<2>(l)));
+        for (const auto& l : mLayers) {
+            vec.push_back(std::get<0>(l) + "/" +
+                          std::to_string(std::get<1>(l)) + "/" +
+                          std::to_string(std::get<2>(l)));
+        }
+
         return val(vec);
     }
 
@@ -143,7 +162,10 @@ private:
         mFrameCount = mPlayer ? mPlayer->totalFrame() : 0;
         mFrameRate = mPlayer ? mPlayer->frameRate() : 0.0;
         mDuration = mPlayer ? mPlayer->duration() : 0.0;
+
         mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
+        mSpecificLayers = mPlayer ? mPlayer->allLayersInfoList() :
+                                    rlottie::LayerTypeList();
     }
 
     void convertToCanvasFormat()
@@ -183,6 +205,7 @@ private:
     double                              mFrameRate{0.0};
     double                              mDuration{0.0};
     rlottie::LayerInfoList              mLayers{};
+    rlottie::LayerTypeList              mSpecificLayers{};
     std::unique_ptr<uint8_t[]>          mBuffer;
     std::unique_ptr<rlottie::Animation> mPlayer;
 };
@@ -193,6 +216,7 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
     class_<RlottieWasm>("RlottieWasm")
         .constructor(&RlottieWasm::create)
         .function("load", &RlottieWasm::load, allow_raw_pointers())
+        .function("allLayerTypeList", &RlottieWasm::allLayerTypeList)
         .function("layers", &RlottieWasm::layers)
         .function("frames", &RlottieWasm::frames)
         .function("frameRate", &RlottieWasm::frameRate)
