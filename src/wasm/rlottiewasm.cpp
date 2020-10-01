@@ -36,6 +36,11 @@ public:
         return mPlayer ? true : false;
     }
 
+    val getDefaultLottie()
+    {
+        return val(resource);
+    }
+
     val allLayerTypeList()
     {
         std::vector<std::string> vec;
@@ -216,6 +221,7 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
     class_<RlottieWasm>("RlottieWasm")
         .constructor(&RlottieWasm::create)
         .function("load", &RlottieWasm::load, allow_raw_pointers())
+        .function("getDefaultLottie", &RlottieWasm::getDefaultLottie)
         .function("allLayerTypeList", &RlottieWasm::allLayerTypeList)
         .function("layers", &RlottieWasm::layers)
         .function("frames", &RlottieWasm::frames)
