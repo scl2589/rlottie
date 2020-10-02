@@ -80,13 +80,15 @@ public:
         mPlayer->setValue<rlottie::Property::StrokeColor>(keypath, rlottie::Color(r, g, b));
     }
 
-    void setFillOpacity(std::string keypath, float opacity) {
+    void setFillOpacity(std::string keypath, float opacity)
+    {
         if (!mPlayer || opacity > 100 || opacity < 0) return;
 
         mPlayer->setValue<rlottie::Property::FillOpacity>(keypath, opacity);
     }
 
-    void setStrokeOpacity(std::string keypath, float opacity) {
+    void setStrokeOpacity(std::string keypath, float opacity)
+    {
         if (!mPlayer || opacity > 100 || opacity < 0) return;
 
         mPlayer->setValue<rlottie::Property::StrokeOpacity>(keypath, opacity);

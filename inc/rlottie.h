@@ -447,7 +447,7 @@ public:
     const MarkerList& markers() const;
 
     /**
-     *  @brief Returns Layer information{name, inFrame, outFrame} of all the child layers  of the composition.
+     *  @brief Returns Layer information{name, inFrame, outFrame} of root's child layers  of the composition.
      *
      *
      *  @return List of Layer Information of the Composition.
@@ -457,6 +457,17 @@ public:
      */
     const LayerInfoList& layers() const;
 
+    /**
+     *  @brief Returns Layer information{Type, Layer keypath} of fill, stroke object layers of the composition.
+     *         If fill object in the layer1(ind: 2)->group1->fill1 hirarchy,
+     *         it returns {"Fill", "2::layer1::group1::fill1"}
+     * 
+     * 
+     *  @return List of Layer information of the Composition.
+     * 
+     *  @see LayerTypeList
+     *  @internal
+     */
     const LayerTypeList& allLayersInfoList() const;
 
     /**

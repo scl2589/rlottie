@@ -408,29 +408,36 @@ std::vector<LayerType> model::Composition::allLayersInfoList() const
 
         for (auto it : curLayer->mChildren) {
             auto nextLayer = static_cast<model::Layer *>(it);
+            std::string nextPath;
 
-            std::string nextPath = curPath + "::" + nextLayer->name();
+            if (curLayer == mRootLayer) {
+                nextPath = "::" + std::to_string(nextLayer->id()) +
+                           "::" + nextLayer->name();
+            }
+            else {
+                nextPath = curPath + "::" + nextLayer->name();
+            }
 
             switch (nextLayer->type())
             {
-            case model::Object::Type::Fill:
-                result.push_back({"Fill Object", nextPath});
-                break;
+                case model::Object::Type::Fill:
+                    result.push_back({"Fill", nextPath});
+                    break;
 
-            case model::Object::Type::Stroke:
-                result.push_back({"Stroke Object", nextPath});
-                break;
+                case model::Object::Type::Stroke:
+                    result.push_back({"Stroke", nextPath});
+                    break;
 
-            case model::Object::Type::GFill:
-                result.push_back({"Gradient Fill Object", nextPath});
-                break;
+                case model::Object::Type::GFill:
+                    result.push_back({"GFill", nextPath});
+                    break;
 
-            case model::Object::Type::GStroke:
-                result.push_back({"Gradient Stroke Object", nextPath});
-                break;
+                case model::Object::Type::GStroke:
+                    result.push_back({"GStroke", nextPath});
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
             }
 
             if (nextLayer->mChildren.empty())
