@@ -49,6 +49,7 @@ using Marker = std::tuple<std::string, int, int>;
 
 using LayerInfo = Marker;
 using LayerType = std::pair<std::string, std::string>;
+using TransformInfo = std::tuple<std::string, float, float>;
 
 template <typename T>
 inline T lerp(const T &start, const T &end, float t)
@@ -515,11 +516,14 @@ struct Asset {
 
 class Layer;
 
+using AllLayerInfo = std::pair<std::vector<LayerType>,
+                               std::vector<TransformInfo>>;
+
 class Composition : public Object {
 public:
     Composition() : Object(Object::Type::Composition) {}
     std::vector<LayerInfo>     layerInfoList() const;   
-    std::vector<LayerType>     allLayersInfoList() const;
+    AllLayerInfo               allLayersInfoList() const;
     const std::vector<Marker> &markers() const { return mMarkers; }
     double                     duration() const
     {
@@ -585,6 +589,10 @@ public:
         {
             return mOpacity.value(frameNo) / 100.0f;
         }
+        VPointF anchor(int frameNo) const
+        {
+            return mAnchor.value(frameNo);
+        }
         void createExtraData()
         {
             if (!mExtra) mExtra = std::make_unique<Extra>();
@@ -603,7 +611,7 @@ public:
         setStatic(staticFlag);
         if (isStatic()) {
             new (&impl.mStaticData)
-                StaticData(data->matrix(0), data->opacity(0));
+                StaticData(data->matrix(0), data->opacity(0), data->anchor(0));
         } else {
             impl.mData = data;
         }
@@ -612,6 +620,11 @@ public:
     {
         if (isStatic()) return impl.mStaticData.mMatrix;
         return impl.mData->matrix(frameNo, autoOrient);
+    }
+    VPointF anchor() const
+    {
+        if (isStatic()) return impl.mStaticData.mAnchor;
+        return impl.mData->anchor(0);
     }
     float opacity(int frameNo) const
     {
@@ -632,12 +645,13 @@ private:
         }
     }
     struct StaticData {
-        StaticData(VMatrix &&m, float opacity)
-            : mOpacity(opacity), mMatrix(std::move(m))
+        StaticData(VMatrix &&m, float opacity, VPointF &&a)
+            : mOpacity(opacity), mMatrix(std::move(m)), mAnchor(std::move(a))
         {
         }
         float   mOpacity;
         VMatrix mMatrix;
+        VPointF mAnchor;
     };
     union details {
         Data *     mData{nullptr};
