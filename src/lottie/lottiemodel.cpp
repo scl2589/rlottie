@@ -391,12 +391,13 @@ std::vector<LayerInfo> model::Composition::layerInfoList() const
     return result;
 }
 
-std::vector<LayerType> model::Composition::allLayersInfoList() const
+model::AllLayerInfo model::Composition::allLayersInfoList() const
 {
     if (!mRootLayer || mRootLayer->mChildren.empty()) return {};
 
-    std::vector<LayerType> result;
-    std::queue<std::pair<model::Layer *, std::string>> q;
+    std::vector<LayerType> layerResult;
+    std::vector<TransformInfo> transformResult;
+    std::queue<std::pair<model::Object *, std::string>> q;
 
     q.push({mRootLayer, ""});
 
@@ -421,37 +422,38 @@ std::vector<LayerType> model::Composition::allLayersInfoList() const
 
             switch (nextLayer->type())
             {
+                case model::Object::Type::Composition:
+                case model::Object::Type::Layer:
+                case model::Object::Type::Group:
+                    if (nextLayer->mTransform)
+                    {
+                        auto anchor = nextLayer->mTransform->anchor();
+                        transformResult.push_back({nextPath, anchor.x(), anchor.y()});
+                    }
+                    q.push({nextLayer, nextPath});
+                    break;
+
                 case model::Object::Type::Fill:
-                    result.push_back({"Fill", nextPath});
+                    layerResult.push_back({"Fill", nextPath});
                     break;
 
                 case model::Object::Type::Stroke:
-                    result.push_back({"Stroke", nextPath});
+                    layerResult.push_back({"Stroke", nextPath});
                     break;
 
                 case model::Object::Type::GFill:
-                    result.push_back({"GFill", nextPath});
+                    layerResult.push_back({"GFill", nextPath});
                     break;
 
                 case model::Object::Type::GStroke:
-                    result.push_back({"GStroke", nextPath});
+                    layerResult.push_back({"GStroke", nextPath});
                     break;
 
                 default:
                     break;
             }
-
-            if (nextLayer->mChildren.empty())
-                continue;
-
-            if (nextLayer->type() == model::Object::Type::Composition ||
-                nextLayer->type() == model::Object::Type::Group ||
-                nextLayer->type() == model::Object::Type::Layer)
-            {
-                q.push({nextLayer, nextPath});
-            }
         }
     }
 
-    return result;
+    return {layerResult, transformResult};
 }
