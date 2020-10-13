@@ -410,10 +410,11 @@ model::AllLayerInfo model::Composition::allLayersInfoList() const
 
         for (auto it : curLayer->mChildren) {
             auto nextLayer = static_cast<model::Layer *>(it);
+            VColor c;
             std::string nextPath;
 
             if (curLayer == mRootLayer) {
-                nextPath = "::" + std::to_string(nextLayer->id()) +
+                nextPath = std::to_string(nextLayer->id()) +
                            "::" + nextLayer->name();
             }
             else {
@@ -434,19 +435,13 @@ model::AllLayerInfo model::Composition::allLayersInfoList() const
                     break;
 
                 case model::Object::Type::Fill:
-                    layerResult.push_back({"Fill", nextPath});
+                    c = static_cast<model::Fill *>(it)->color(0).toColor();
+                    layerResult.push_back({"Fill", nextPath, c.red(), c.green(), c.blue()});
                     break;
 
                 case model::Object::Type::Stroke:
-                    layerResult.push_back({"Stroke", nextPath});
-                    break;
-
-                case model::Object::Type::GFill:
-                    layerResult.push_back({"GFill", nextPath});
-                    break;
-
-                case model::Object::Type::GStroke:
-                    layerResult.push_back({"GStroke", nextPath});
+                    c = static_cast<model::Stroke *>(it)->color(0).toColor();
+                    layerResult.push_back({"Stroke", nextPath, c.red(), c.green(), c.blue()});
                     break;
 
                 default:

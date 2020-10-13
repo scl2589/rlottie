@@ -48,7 +48,7 @@ namespace internal {
 using Marker = std::tuple<std::string, int, int>;
 
 using LayerInfo = Marker;
-using LayerType = std::pair<std::string, std::string>;
+using LayerType = std::tuple<std::string, std::string, uint8_t, uint8_t, uint8_t>;
 using TransformInfo = std::tuple<std::string, float, float>;
 
 template <typename T>

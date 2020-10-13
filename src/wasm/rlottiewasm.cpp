@@ -18,6 +18,14 @@ struct Anchor {
     float x, y;
 };
 
+struct ColorLayer {
+    ColorLayer() = default;
+    ColorLayer(std::string _t, std::string _p, uint8_t _r, uint8_t _g, uint8_t _b)
+    : type(_t), keypath(_p), r(_r), g(_g), b(_b) {}
+    std::string type, keypath;
+    uint8_t r, g, b;
+};
+
 class __attribute__((visibility("default"))) RlottieWasm {
 public:
     static std::unique_ptr<RlottieWasm> create()
@@ -63,10 +71,11 @@ public:
 
     val allLayerTypeList()
     {
-        std::vector<std::string> vec;
+        std::vector<ColorLayer> vec;
 
         for (const auto& l : mSpecificLayers) {
-            vec.push_back(l.first + l.second);
+            vec.push_back({std::get<0>(l), std::get<1>(l),
+                           std::get<2>(l), std::get<3>(l), std::get<4>(l)});
         }
 
         return val(vec);
@@ -265,10 +274,18 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .function("render", &RlottieWasm::render);
 
     value_object<Anchor>("Anchor")
-        .field("path", &Anchor::p)
+        .field("keypath", &Anchor::p)
         .field("x", &Anchor::x)
         .field("y", &Anchor::y);
 
+    value_object<ColorLayer>("ColorLayer")
+        .field("type", &ColorLayer::type)
+        .field("keypath", &ColorLayer::keypath)
+        .field("red", &ColorLayer::r)
+        .field("green", &ColorLayer::g)
+        .field("blue", &ColorLayer::b);
+
     register_vector<Anchor>("vector<Anchor>");
+    register_vector<ColorLayer>("vector<ColorLayer>");
     register_vector<std::string>("vector<std::tstring>");
 }
