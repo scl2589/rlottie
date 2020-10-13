@@ -11,6 +11,13 @@ const char *resource = "{\"v\":\"5.7.1\",\"fr\":60,\"ip\":0,\"op\":137,\"w\":500
 
 typedef unsigned char uint8_t;
 
+struct Anchor {
+    Anchor() = default;
+    Anchor(std::string _p, float _x, float _y): p(_p), x(_x), y(_y) {}
+    std::string p;
+    float x, y;
+};
+
 class __attribute__((visibility("default"))) RlottieWasm {
 public:
     static std::unique_ptr<RlottieWasm> create()
@@ -32,6 +39,8 @@ public:
         mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
         mSpecificLayers = mPlayer ? mPlayer->allLayersInfoList() :
                                     rlottie::LayerTypeList();
+        mTransformLayers = mPlayer ? mPlayer->transformLayersInfoList() :
+                                    rlottie::TransformInfoList();
 
         return mPlayer ? true : false;
     }
@@ -39,6 +48,17 @@ public:
     val getDefaultLottie()
     {
         return val(resource);
+    }
+
+    val getAnchors()
+    {
+        std::vector<Anchor> v;
+
+        for (const auto& t : mTransformLayers) {
+            v.push_back({std::get<0>(t), std::get<1>(t), std::get<2>(t)});
+        }
+
+        return val(v);
     }
 
     val allLayerTypeList()
@@ -172,6 +192,8 @@ private:
         mLayers = mPlayer ? mPlayer->layers() : rlottie::LayerInfoList();
         mSpecificLayers = mPlayer ? mPlayer->allLayersInfoList() :
                                     rlottie::LayerTypeList();
+        mTransformLayers = mPlayer ? mPlayer->transformLayersInfoList() :
+                                    rlottie::TransformInfoList();
     }
 
     void convertToCanvasFormat()
@@ -212,6 +234,7 @@ private:
     double                              mDuration{0.0};
     rlottie::LayerInfoList              mLayers{};
     rlottie::LayerTypeList              mSpecificLayers{};
+    rlottie::TransformInfoList          mTransformLayers{};
     std::unique_ptr<uint8_t[]>          mBuffer;
     std::unique_ptr<rlottie::Animation> mPlayer;
 };
@@ -238,7 +261,14 @@ EMSCRIPTEN_BINDINGS(rlottie_bindings)
         .function("setScale", &RlottieWasm::setScale)
         .function("setRotation", &RlottieWasm::setRotation)
         .function("setOpacity", &RlottieWasm::setOpacity)
+        .function("getAnchors", &RlottieWasm::getAnchors)
         .function("render", &RlottieWasm::render);
 
+    value_object<Anchor>("Anchor")
+        .field("path", &Anchor::p)
+        .field("x", &Anchor::x)
+        .field("y", &Anchor::y);
+
+    register_vector<Anchor>("vector<Anchor>");
     register_vector<std::string>("vector<std::tstring>");
 }

@@ -265,6 +265,9 @@ using MarkerList = std::vector<std::tuple<std::string, int , int>>;
 
 using LayerInfoList = std::vector<std::tuple<std::string, int, int>>;
 using LayerTypeList = std::vector<std::pair<std::string, std::string>>;
+using TransformInfoList = std::vector<std::tuple<std::string, float, float>>;
+
+using AllLayerInfoList = std::pair<LayerTypeList, TransformInfoList>;
 
 using ColorFilter = std::function<void(float &r , float &g, float &b)>;
 
@@ -469,6 +472,8 @@ public:
      *  @internal
      */
     const LayerTypeList& allLayersInfoList() const;
+
+    const TransformInfoList& transformLayersInfoList() const;
 
     /**
      *  @brief Sets property value for the specified {@link KeyPath}. This {@link KeyPath} can resolve

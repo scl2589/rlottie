@@ -69,10 +69,17 @@ public:
     }
     const LayerTypeList &allLayersInfoList() const
     {
-        if (mSearchLayers.empty()) {
-            mSearchLayers = mModel->allLayersInfoList();
+        if (mAllLayers.first.empty() || mAllLayers.second.empty()) {
+            mAllLayers = mModel->allLayersInfoList();
         }
-        return mSearchLayers;
+        return mAllLayers.first;
+    }
+    const TransformInfoList &transformLayersInfoList() const
+    {
+        if (mAllLayers.first.empty() || mAllLayers.second.empty()) {
+            mAllLayers = mModel->allLayersInfoList();
+        }
+        return mAllLayers.second;
     }
     const MarkerList &markers() const { return mModel->markers(); }
     void              setValue(const std::string &keypath, LOTVariant &&value);
@@ -80,7 +87,7 @@ public:
 
 private:
     mutable LayerInfoList                  mLayerList;
-    mutable LayerTypeList                  mSearchLayers;
+    mutable AllLayerInfoList               mAllLayers;
     model::Composition *                   mModel;
     SharedRenderTask                       mTask;
     std::atomic<bool>                      mRenderInProgress;
@@ -371,6 +378,11 @@ const LayerInfoList &Animation::layers() const
 const LayerTypeList &Animation::allLayersInfoList() const
 {
     return d->allLayersInfoList();
+}
+
+const TransformInfoList &Animation::transformLayersInfoList() const
+{
+    return d->transformLayersInfoList();
 }
 
 const MarkerList &Animation::markers() const
