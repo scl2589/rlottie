@@ -264,7 +264,7 @@ using MarkerList = std::vector<std::tuple<std::string, int , int>>;
  */
 
 using LayerInfoList = std::vector<std::tuple<std::string, int, int>>;
-using LayerTypeList = std::vector<std::pair<std::string, std::string>>;
+using LayerTypeList = std::vector<std::tuple<std::string, std::string, uint8_t, uint8_t, uint8_t>>;
 using TransformInfoList = std::vector<std::tuple<std::string, float, float>>;
 
 using AllLayerInfoList = std::pair<LayerTypeList, TransformInfoList>;
