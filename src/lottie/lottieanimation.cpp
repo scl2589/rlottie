@@ -67,19 +67,35 @@ public:
         }
         return mLayerList;
     }
-    const LayerTypeList &allLayersInfoList() const
+    const FillInfoList &fillLayersInfoList(int frameNo) const
     {
-        if (mAllLayers.first.empty() || mAllLayers.second.empty()) {
-            mAllLayers = mModel->allLayersInfoList();
+        // if (std::get<0>(mAllLayers).empty() ||
+        //     std::get<1>(mAllLayers).empty() ||
+        //     std::get<2>(mAllLayers).empty())
+        {
+            mAllLayers = mModel->allLayersInfoList(frameNo);
         }
-        return mAllLayers.first;
+        return std::get<0>(mAllLayers);
     }
-    const TransformInfoList &transformLayersInfoList() const
+    const StrokeInfoList &strokeLayersInfoList(int frameNo) const
     {
-        if (mAllLayers.first.empty() || mAllLayers.second.empty()) {
-            mAllLayers = mModel->allLayersInfoList();
+        // if (std::get<0>(mAllLayers).empty() ||
+        //     std::get<1>(mAllLayers).empty() ||
+        //     std::get<2>(mAllLayers).empty())
+        {
+            mAllLayers = mModel->allLayersInfoList(frameNo);
         }
-        return mAllLayers.second;
+        return std::get<1>(mAllLayers);
+    }
+    const TransformInfoList &transformLayersInfoList(int frameNo) const
+    {
+        // if (std::get<0>(mAllLayers).empty() ||
+        //     std::get<1>(mAllLayers).empty() ||
+        //     std::get<2>(mAllLayers).empty())
+        {
+            mAllLayers = mModel->allLayersInfoList(frameNo);
+        }
+        return std::get<2>(mAllLayers);
     }
     const MarkerList &markers() const { return mModel->markers(); }
     void              setValue(const std::string &keypath, LOTVariant &&value);
@@ -375,14 +391,19 @@ const LayerInfoList &Animation::layers() const
     return d->layerInfoList();
 }
 
-const LayerTypeList &Animation::allLayersInfoList() const
+const FillInfoList &Animation::fillLayers(int frameNo) const
 {
-    return d->allLayersInfoList();
+    return d->fillLayersInfoList(frameNo);
 }
 
-const TransformInfoList &Animation::transformLayersInfoList() const
+const StrokeInfoList &Animation::strokeLayers(int frameNo) const
 {
-    return d->transformLayersInfoList();
+    return d->strokeLayersInfoList(frameNo);
+}
+
+const TransformInfoList &Animation::transformLayers(int frameNo) const
+{
+    return d->transformLayersInfoList(frameNo);
 }
 
 const MarkerList &Animation::markers() const
