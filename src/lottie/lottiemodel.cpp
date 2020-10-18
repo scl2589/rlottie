@@ -391,18 +391,21 @@ std::vector<LayerInfo> model::Composition::layerInfoList() const
     return result;
 }
 
-std::vector<LayerType> model::Composition::allLayersInfoList() const
+model::AllLayerInfo model::Composition::allLayersInfoList(int frameNo) const
 {
     if (!mRootLayer || mRootLayer->mChildren.empty()) return {};
 
-    std::vector<LayerType> result;
-    std::queue<std::pair<model::Layer *, std::string>> q;
+    std::vector<FillInfo> fillResult;
+    std::vector<StrokeInfo> strokeResult;
+    std::vector<TransformInfo> transformResult;
+    std::queue<std::tuple<model::Object *, int, std::string>> q;
 
-    q.push({mRootLayer, ""});
+    q.push({mRootLayer, 0, ""});
 
     while (!q.empty()) {
-        auto curLayer = static_cast<model::Layer *>(q.front().first);
-        std::string curPath = q.front().second;
+        auto curLayer = static_cast<model::Layer *>(std::get<0>(q.front()));
+        int index = std::get<1>(q.front());
+        std::string curPath = std::get<2>(q.front());
         q.pop();
 
         if (!curLayer) continue;
@@ -412,8 +415,8 @@ std::vector<LayerType> model::Composition::allLayersInfoList() const
             std::string nextPath;
 
             if (curLayer == mRootLayer) {
-                nextPath = "::" + std::to_string(nextLayer->id()) +
-                           "::" + nextLayer->name();
+                index = nextLayer->id();
+                nextPath = nextLayer->name();
             }
             else {
                 nextPath = curPath + "::" + nextLayer->name();
@@ -421,37 +424,47 @@ std::vector<LayerType> model::Composition::allLayersInfoList() const
 
             switch (nextLayer->type())
             {
-                case model::Object::Type::Fill:
-                    result.push_back({"Fill", nextPath});
+                case model::Object::Type::Composition:
+                case model::Object::Type::Layer:
+                case model::Object::Type::Group:
+                {
+                    if (nextLayer->mTransform)
+                    {
+                        VPointF p = nextLayer->mTransform->position(frameNo);
+                        VPointF a = nextLayer->mTransform->anchor(frameNo);
+                        transformResult.push_back({nextPath, index,
+                                                   p.x(), p.y(), a.x(), a.y()});
+                    }
+                    q.push({nextLayer, index, nextPath});
                     break;
+                }
+
+                case model::Object::Type::Fill:
+                {
+                    auto fill = static_cast<model::Fill *>(it);
+                    VColor c = fill->color(frameNo).toColor();
+                    float o = fill->opacity(frameNo);
+                    fillResult.push_back({nextPath, index,
+                                          c.red(), c.green(), c.blue(), o});
+                    break;
+                }
 
                 case model::Object::Type::Stroke:
-                    result.push_back({"Stroke", nextPath});
+                {
+                    auto stroke = static_cast<model::Stroke *>(it);
+                    VColor c = stroke->color(frameNo).toColor();
+                    float o = stroke->opacity(frameNo);
+                    float w = stroke->strokeWidth(frameNo);
+                    strokeResult.push_back({nextPath, index,
+                                            c.red(), c.green(), c.blue(), o, w});
                     break;
-
-                case model::Object::Type::GFill:
-                    result.push_back({"GFill", nextPath});
-                    break;
-
-                case model::Object::Type::GStroke:
-                    result.push_back({"GStroke", nextPath});
-                    break;
+                }
 
                 default:
                     break;
             }
-
-            if (nextLayer->mChildren.empty())
-                continue;
-
-            if (nextLayer->type() == model::Object::Type::Composition ||
-                nextLayer->type() == model::Object::Type::Group ||
-                nextLayer->type() == model::Object::Type::Layer)
-            {
-                q.push({nextLayer, nextPath});
-            }
         }
     }
 
-    return result;
+    return {fillResult, strokeResult, transformResult};
 }

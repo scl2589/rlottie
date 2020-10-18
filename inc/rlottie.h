@@ -264,7 +264,12 @@ using MarkerList = std::vector<std::tuple<std::string, int , int>>;
  */
 
 using LayerInfoList = std::vector<std::tuple<std::string, int, int>>;
-using LayerTypeList = std::vector<std::pair<std::string, std::string>>;
+
+using FillInfoList = std::vector<std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint8_t, float>>;
+using StrokeInfoList = std::vector<std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint8_t, float, float>>;
+using TransformInfoList = std::vector<std::tuple<std::string, uint8_t, float, float, float, float>>;
+
+using AllLayerInfoList = std::tuple<FillInfoList, StrokeInfoList, TransformInfoList>;
 
 using ColorFilter = std::function<void(float &r , float &g, float &b)>;
 
@@ -468,7 +473,11 @@ public:
      *  @see LayerTypeList
      *  @internal
      */
-    const LayerTypeList& allLayersInfoList() const;
+    const FillInfoList& fillLayers(int frameNo) const;
+
+    const StrokeInfoList& strokeLayers(int frameNo) const;
+
+    const TransformInfoList& transformLayers(int frameNo) const;
 
     /**
      *  @brief Sets property value for the specified {@link KeyPath}. This {@link KeyPath} can resolve
