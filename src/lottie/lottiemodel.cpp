@@ -391,31 +391,32 @@ std::vector<LayerInfo> model::Composition::layerInfoList() const
     return result;
 }
 
-model::AllLayerInfo model::Composition::allLayersInfoList() const
+model::AllLayerInfo model::Composition::allLayersInfoList(int frameNo) const
 {
     if (!mRootLayer || mRootLayer->mChildren.empty()) return {};
 
-    std::vector<LayerType> layerResult;
+    std::vector<FillInfo> fillResult;
+    std::vector<StrokeInfo> strokeResult;
     std::vector<TransformInfo> transformResult;
-    std::queue<std::pair<model::Object *, std::string>> q;
+    std::queue<std::tuple<model::Object *, int, std::string>> q;
 
-    q.push({mRootLayer, ""});
+    q.push({mRootLayer, 0, ""});
 
     while (!q.empty()) {
-        auto curLayer = static_cast<model::Layer *>(q.front().first);
-        std::string curPath = q.front().second;
+        auto curLayer = static_cast<model::Layer *>(std::get<0>(q.front()));
+        int index = std::get<1>(q.front());
+        std::string curPath = std::get<2>(q.front());
         q.pop();
 
         if (!curLayer) continue;
 
         for (auto it : curLayer->mChildren) {
             auto nextLayer = static_cast<model::Layer *>(it);
-            VColor c;
             std::string nextPath;
 
             if (curLayer == mRootLayer) {
-                nextPath = std::to_string(nextLayer->id()) +
-                           "::" + nextLayer->name();
+                index = nextLayer->id();
+                nextPath = nextLayer->name();
             }
             else {
                 nextPath = curPath + "::" + nextLayer->name();
@@ -426,23 +427,38 @@ model::AllLayerInfo model::Composition::allLayersInfoList() const
                 case model::Object::Type::Composition:
                 case model::Object::Type::Layer:
                 case model::Object::Type::Group:
+                {
                     if (nextLayer->mTransform)
                     {
-                        auto anchor = nextLayer->mTransform->anchor();
-                        transformResult.push_back({nextPath, anchor.x(), anchor.y()});
+                        VPointF p = nextLayer->mTransform->position(frameNo);
+                        VPointF a = nextLayer->mTransform->anchor(frameNo);
+                        transformResult.push_back({nextPath, index,
+                                                   p.x(), p.y(), a.x(), a.y()});
                     }
-                    q.push({nextLayer, nextPath});
+                    q.push({nextLayer, index, nextPath});
                     break;
+                }
 
                 case model::Object::Type::Fill:
-                    c = static_cast<model::Fill *>(it)->color(0).toColor();
-                    layerResult.push_back({"Fill", nextPath, c.red(), c.green(), c.blue()});
+                {
+                    auto fill = static_cast<model::Fill *>(it);
+                    VColor c = fill->color(frameNo).toColor();
+                    float o = fill->opacity(frameNo);
+                    fillResult.push_back({nextPath, index,
+                                          c.red(), c.green(), c.blue(), o});
                     break;
+                }
 
                 case model::Object::Type::Stroke:
-                    c = static_cast<model::Stroke *>(it)->color(0).toColor();
-                    layerResult.push_back({"Stroke", nextPath, c.red(), c.green(), c.blue()});
+                {
+                    auto stroke = static_cast<model::Stroke *>(it);
+                    VColor c = stroke->color(frameNo).toColor();
+                    float o = stroke->opacity(frameNo);
+                    float w = stroke->strokeWidth(frameNo);
+                    strokeResult.push_back({nextPath, index,
+                                            c.red(), c.green(), c.blue(), o, w});
                     break;
+                }
 
                 default:
                     break;
@@ -450,5 +466,5 @@ model::AllLayerInfo model::Composition::allLayersInfoList() const
         }
     }
 
-    return {layerResult, transformResult};
+    return {fillResult, strokeResult, transformResult};
 }

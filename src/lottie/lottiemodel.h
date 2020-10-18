@@ -48,8 +48,9 @@ namespace internal {
 using Marker = std::tuple<std::string, int, int>;
 
 using LayerInfo = Marker;
-using LayerType = std::tuple<std::string, std::string, uint8_t, uint8_t, uint8_t>;
-using TransformInfo = std::tuple<std::string, float, float>;
+using FillInfo = std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint8_t, float>;
+using StrokeInfo = std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint8_t, float, float>;
+using TransformInfo = std::tuple<std::string, uint8_t, float, float, float, float>;
 
 template <typename T>
 inline T lerp(const T &start, const T &end, float t)
@@ -516,14 +517,15 @@ struct Asset {
 
 class Layer;
 
-using AllLayerInfo = std::pair<std::vector<LayerType>,
-                               std::vector<TransformInfo>>;
+using AllLayerInfo = std::tuple<std::vector<FillInfo>,
+                                std::vector<StrokeInfo>,
+                                std::vector<TransformInfo>>;
 
 class Composition : public Object {
 public:
     Composition() : Object(Object::Type::Composition) {}
     std::vector<LayerInfo>     layerInfoList() const;   
-    AllLayerInfo               allLayersInfoList() const;
+    AllLayerInfo               allLayersInfoList(int frameNo) const;
     const std::vector<Marker> &markers() const { return mMarkers; }
     double                     duration() const
     {
@@ -589,6 +591,10 @@ public:
         {
             return mOpacity.value(frameNo) / 100.0f;
         }
+        VPointF position(int frameNo) const
+        {
+            return mPosition.value(frameNo);
+        }
         VPointF anchor(int frameNo) const
         {
             return mAnchor.value(frameNo);
@@ -611,7 +617,8 @@ public:
         setStatic(staticFlag);
         if (isStatic()) {
             new (&impl.mStaticData)
-                StaticData(data->matrix(0), data->opacity(0), data->anchor(0));
+                StaticData(data->matrix(0), data->opacity(0),
+                           data->position(0), data->anchor(0));
         } else {
             impl.mData = data;
         }
@@ -621,10 +628,15 @@ public:
         if (isStatic()) return impl.mStaticData.mMatrix;
         return impl.mData->matrix(frameNo, autoOrient);
     }
-    VPointF anchor() const
+    VPointF position(int frameNo) const
+    {
+        if (isStatic()) return impl.mStaticData.mPosition;
+        return impl.mData->position(frameNo);
+    }
+    VPointF anchor(int frameNo) const
     {
         if (isStatic()) return impl.mStaticData.mAnchor;
-        return impl.mData->anchor(0);
+        return impl.mData->anchor(frameNo);
     }
     float opacity(int frameNo) const
     {
@@ -645,12 +657,14 @@ private:
         }
     }
     struct StaticData {
-        StaticData(VMatrix &&m, float opacity, VPointF &&a)
-            : mOpacity(opacity), mMatrix(std::move(m)), mAnchor(std::move(a))
+        StaticData(VMatrix &&m, float opacity, VPointF &&p, VPointF &&a)
+            : mOpacity(opacity), mMatrix(std::move(m)),
+              mPosition(std::move(p)), mAnchor(std::move(a))
         {
         }
         float   mOpacity;
         VMatrix mMatrix;
+        VPointF mPosition;
         VPointF mAnchor;
     };
     union details {
